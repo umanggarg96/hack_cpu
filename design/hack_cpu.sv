@@ -80,5 +80,6 @@ module hack_cpu(clock, reset, instr, mem_in, wr_mem, mem_out, wr_addr, pc);
 
     assign wr_mem  = instr[15] & instr[3];
     assign pc      = pc_out[14:0];
-    assign wr_addr = (wr_mem) ? out_reg_a[14:0] : instr[14:0];
+    assign wr_addr = (instr[15]) ? out_reg_a[14:0] : instr[14:0];
+    // assign wr_addr = out_reg_a[14:0];
 endmodule

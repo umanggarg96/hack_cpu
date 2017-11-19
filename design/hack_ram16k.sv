@@ -20,5 +20,6 @@ module hack_ram16k(clock, load, in, addr, out);
     end
 
     assign out = mem[addr_reg];
+    // assign out = mem[addr];
 
 endmodule
