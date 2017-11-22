@@ -1,8 +1,10 @@
 
-module hack_top(clock, reset_n, debug_led, vsync, hsync, rgb);
+module hack_top(clock, reset_n, debug_led, vsync, hsync, rgb, in_a, in_b);
 
     input  wire        clock;
     input  wire        reset_n;
+    input  wire        in_a;
+    input  wire        in_b;
 
     output wire        vsync;
     output wire        hsync;
@@ -16,6 +18,14 @@ module hack_top(clock, reset_n, debug_led, vsync, hsync, rgb);
     wire  [15:0] mem_out;
     wire  [14:0] wr_addr;
     wire  [14:0] pc;
+    wire  [7:0]  out_decoder;
+    wire  [15:0] mem_kbd;
+
+    wire         video_on;
+    wire  [12:0] word_addr;
+    wire  [3:0]  bit_addr;
+    wire  [15:0] vga_word;
+    wire         bit_on;
 
     hack_cpu inst_cpu(
             .clock(clock),
@@ -33,8 +43,31 @@ module hack_top(clock, reset_n, debug_led, vsync, hsync, rgb);
             .addr     (wr_addr),
             .load     (wr_mem),
             .out      (mem_in),
-            .debug_led(debug_led)
+            .debug_led(debug_led),
+            .mem_kbd  (mem_kbd),
+            .vga_word_addr (word_addr),
+            .vga_word (vga_word)
         );
+    rotary_decoder decoder(
+            .clk  (clock),
+            .reset(reset),
+            .in_a (in_a),
+            .in_b (in_b),
+            .val  (out_decoder)
+        );
+
+    vga_driver inst_vga_driver (
+            .clock     (clock),
+            .reset     (reset),
+            .v_sync    (vsync),
+            .h_sync    (hsync),
+            .video_on  (video_on),
+            .word_addr (word_addr),
+            .bit_addr  (bit_addr)
+        );
+
+    assign bit_on = video_on && vga_word[bit_addr];
+    assign rgb = {3{bit_on}};
 
     // hack_ram16k inst_ram(
     //         .clock(clock),
@@ -64,8 +97,10 @@ module hack_top(clock, reset_n, debug_led, vsync, hsync, rgb);
 
     assign reset =  ~reset_n;
 
-    assign vsync = 1'b0;
-    assign hsync = 1'b0;
-    assign rgb   = 3'b000;
+    assign mem_kbd = {out_decoder, out_decoder};
+
+    // assign vsync = 1'b0;
+    // assign hsync = 1'b0;
+    // assign rgb   = 3'b000;
     // assign debug_led = mem_out[7:0];
 endmodule
