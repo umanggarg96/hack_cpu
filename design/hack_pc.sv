@@ -9,7 +9,6 @@
 
 */
 
-
 module hack_pc(clock, reset, load, increment, in, out);
 
     input  wire         clock;
